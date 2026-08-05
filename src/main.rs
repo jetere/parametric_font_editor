@@ -1,5 +1,5 @@
 use eframe::egui;
-use egui::{pos2, vec2, Color32, CornerRadius, Pos2, Rect, Sense, Stroke};
+use egui::{pos2, vec2, Color32, Rect, Rounding, Sense, Stroke};
 use std::collections::HashMap;
 
 fn main() -> eframe::Result<()> {
@@ -13,7 +13,7 @@ fn main() -> eframe::Result<()> {
     eframe::run_native(
         "Parametric Font Studio",
         native_options,
-        Box::new(|_cc| Ok(Box::new(FontEditorApp::default()))),
+        Box::new(|_cc| Box::new(FontEditorApp::default())),
     )
 }
 
@@ -28,7 +28,6 @@ struct FontEditorApp {
 impl Default for FontEditorApp {
     fn default() -> Self {
         let mut alphabet = HashMap::new();
-        // 15-box indices (1 to 15) mapped to letters
         alphabet.insert('A', vec![2, 4, 6, 7, 8, 9, 10, 12]);
         alphabet.insert('B', vec![1, 2, 4, 6, 7, 8, 10, 11]);
         alphabet.insert('C', vec![1, 2, 3, 4, 7, 10, 11, 12]);
@@ -54,7 +53,7 @@ impl Default for FontEditorApp {
 
 impl eframe::App for FontEditorApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
-        // Left Side: Interactive Canvas & Sliders
+        // Left Panel: Canvas Controls & Interactive Handles
         egui::SidePanel::left("control_panel")
             .resizable(false)
             .default_width(400.0)
@@ -63,15 +62,16 @@ impl eframe::App for FontEditorApp {
                 ui.label("Drag the yellow handles or adjust sliders below:");
                 ui.add_space(8.0);
 
-                // --- Canvas Area for Drag Handles ---
                 let canvas_size = vec2(360.0, 320.0);
                 let (response, painter) = ui.allocate_painter(canvas_size, Sense::hover());
                 let origin = response.rect.min + vec2(40.0, 40.0);
 
-                // Background
-                painter.rect_filled(response.rect, 8.0, Color32::from_rgb(18, 18, 20));
+                painter.rect_filled(
+                    response.rect,
+                    Rounding::same(8.0),
+                    Color32::from_rgb(18, 18, 20),
+                );
 
-                // Draw Grid Boxes
                 let mut box_idx = 1;
                 let mut curr_y = origin.y;
                 for r in 0..5 {
@@ -83,9 +83,8 @@ impl eframe::App for FontEditorApp {
                         );
                         painter.rect_stroke(
                             rect,
-                            CornerRadius::from(self.corner_radius),
+                            Rounding::same(self.corner_radius),
                             Stroke::new(1.0, Color32::from_rgb(60, 60, 70)),
-                            egui::StrokeKind::Outside,
                         );
                         curr_x += self.col_widths[c] + self.gap;
                         box_idx += 1;
@@ -93,7 +92,7 @@ impl eframe::App for FontEditorApp {
                     curr_y += self.row_heights[r] + self.gap;
                 }
 
-                // --- Column Drag Handles (Horizontal) ---
+                // Column Drag Handles (Horizontal)
                 let mut acc_x = origin.x + self.col_widths[0];
                 for c in 0..2 {
                     let handle_pos = pos2(acc_x + self.gap / 2.0, origin.y - 15.0);
@@ -105,7 +104,8 @@ impl eframe::App for FontEditorApp {
                     );
 
                     if handle_response.dragged() {
-                        self.col_widths[c] = (self.col_widths[c] + handle_response.drag_delta().x).max(15.0);
+                        self.col_widths[c] =
+                            (self.col_widths[c] + handle_response.drag_delta().x).max(15.0);
                     }
 
                     let color = if handle_response.hovered() || handle_response.dragged() {
@@ -118,7 +118,7 @@ impl eframe::App for FontEditorApp {
                     acc_x += self.col_widths[c + 1] + self.gap;
                 }
 
-                // --- Row Drag Handles (Vertical) ---
+                // Row Drag Handles (Vertical)
                 let mut acc_y = origin.y + self.row_heights[0];
                 for r in 0..4 {
                     let handle_pos = pos2(origin.x - 15.0, acc_y + self.gap / 2.0);
@@ -130,7 +130,8 @@ impl eframe::App for FontEditorApp {
                     );
 
                     if handle_response.dragged() {
-                        self.row_heights[r] = (self.row_heights[r] + handle_response.drag_delta().y).max(15.0);
+                        self.row_heights[r] =
+                            (self.row_heights[r] + handle_response.drag_delta().y).max(15.0);
                     }
 
                     let color = if handle_response.hovered() || handle_response.dragged() {
@@ -147,10 +148,12 @@ impl eframe::App for FontEditorApp {
                 ui.separator();
                 ui.label("Fine Tuning Controls:");
                 ui.add(egui::Slider::new(&mut self.gap, 0.0..=15.0).text("Box Gap"));
-                ui.add(egui::Slider::new(&mut self.corner_radius, 0.0..=20.0).text("Corner Radius"));
+                ui.add(
+                    egui::Slider::new(&mut self.corner_radius, 0.0..=20.0).text("Corner Radius"),
+                );
             });
 
-        // Right Side: Live Font Preview
+        // Right Panel: Live Font Preview
         egui::CentralPanel::default().show(ctx, |ui| {
             ui.heading("Live Font Output");
             ui.add_space(10.0);
@@ -165,14 +168,19 @@ impl eframe::App for FontEditorApp {
 
                         ui.vertical(|ui| {
                             let card_size = vec2(70.0, 95.0);
-                            let (response, painter) = ui.allocate_painter(card_size, Sense::hover());
+                            let (response, painter) =
+                                ui.allocate_painter(card_size, Sense::hover());
 
-                            // Card Background
-                            painter.rect_filled(response.rect, 6.0, Color32::from_rgb(24, 24, 28));
+                            painter.rect_filled(
+                                response.rect,
+                                Rounding::same(6.0),
+                                Color32::from_rgb(24, 24, 28),
+                            );
 
-                            // Scale down global 15-box dimensions to fit inside preview card
-                            let total_w: f32 = self.col_widths.iter().sum::<f32>() + (self.gap * 2.0);
-                            let total_h: f32 = self.row_heights.iter().sum::<f32>() + (self.gap * 4.0);
+                            let total_w: f32 =
+                                self.col_widths.iter().sum::<f32>() + (self.gap * 2.0);
+                            let total_h: f32 =
+                                self.row_heights.iter().sum::<f32>() + (self.gap * 4.0);
                             let scale = (50.0 / total_w).min(60.0 / total_h);
 
                             let card_origin = response.rect.min + vec2(10.0, 10.0);
@@ -187,10 +195,11 @@ impl eframe::App for FontEditorApp {
                                     let h = self.row_heights[r] * scale;
 
                                     if active_boxes.contains(&box_idx) {
-                                        let rect = Rect::from_min_size(pos2(curr_x, curr_y), vec2(w, h));
+                                        let rect =
+                                            Rect::from_min_size(pos2(curr_x, curr_y), vec2(w, h));
                                         painter.rect_filled(
                                             rect,
-                                            CornerRadius::from(self.corner_radius * scale),
+                                            Rounding::same(self.corner_radius * scale),
                                             Color32::from_rgb(129, 140, 248),
                                         );
                                     }
