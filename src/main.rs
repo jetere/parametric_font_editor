@@ -1,6 +1,7 @@
 mod alphabet;
 mod app;
 mod canvas;
+mod export;
 
 use app::FontEditorApp;
 use eframe::egui;
