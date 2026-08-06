@@ -37,6 +37,4 @@ Instead of drawing traditional freehand vector splines, fonts in this studio are
 
 ---
 
-## Inspiration & Concept
 
-Inspired by [Niklas Tsalkos](https://www.instagram.com/niklastsalkos/)
