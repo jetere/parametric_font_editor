@@ -1,5 +1,5 @@
 [package]
-name = "parametric_font_editor"
+name = "alpha_pfe_v01"
 version = "0.1.0"
 edition = "2021"
 license = "MIT"
