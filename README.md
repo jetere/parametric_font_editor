@@ -1,42 +1,52 @@
-# parametric_font_editor
-A lightweight, GPU-accelerated desktop tool built in Rust for designing parametric grid fonts and exporting production-ready vector assets.
+﻿# Parametric Font Studio
 
-![Rust](https://img.shields.io/badge/Language-Rust_2021-orange.svg)
-![eframe](https://img.shields.io/badge/GUI-eframe%2Fegui_0.27-blue.svg)
-![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey.svg)
+A native Rust/egui editor for stylized 3 x 5 pixel fonts.
 
----
+## Run
 
-#How It Works 
-## 15-Box Matrix System
-Instead of drawing traditional freehand vector splines, fonts in this studio are constructed on a flexible **$3 \times 5$ parametric grid** (15 active coordinate boxes). Every character from $A\text{--}Z$ is mapped as a unique combination of these boxes.
+With a Rust toolchain and Windows C++ build tools installed:
 
-## Preview <img width="1145" height="711" alt="Screenshot 2026-08-06 053438" src="https://github.com/user-attachments/assets/9d6242d8-d54f-4704-8fc2-2a4747114f7f" />
+```sh
+cargo run
+```
 
+## Edit
 
+- Select a character in the gallery and click cells to toggle them.
+- Drag orange nodes to resize rows and columns; use individual dimension sliders for precision.
+- Adjust global width, height, aspect ratio, cell gap, roundness, slant and letter spacing.
+- Copy/paste characters, flip horizontally or vertically, clear or reset individual glyphs.
+- Undo/redo edits. Drag gestures are grouped into a single undo step.
+- Type sample text and adjust preview size. Uppercase, lowercase, digits and common punctuation have independent editable designs. Unsupported characters appear as red boxes in the preview.
+- Both panels scroll, and the editing canvas scales to fit large designs.
 
-## Geometry Engine
-* **2D Vertex Nodes & Outer Handles:** Real-time drag controls let you adjust internal row heights and column widths. Modifying a single node instantly recalculates the geometry for all 26 letters across the typeface.
-* **Proportional Scaling & Baseline Locking:** Every letter is constrained to fixed boundaries, ensuring consistent cap-heights and baseline alignment across the whole font family.
+This remains a grid-based display font editor: it does not import existing TTFs or edit Bezier outlines. Three columns impose limits on the detail and legibility of complex letters, particularly at small sizes.
 
-## Features
-- **Input Canvas:** Adjust row and column proportions with interior vertex anchors and outer edge handles.
-- **$A\text{--}Z$ Alphabet Mapping:** Real-time side-by-side rendering all 26 uppercase characters.
-- **Aspect Ratio Controls:** Precision width/height sliders, 1:1 aspect ratio locking, and quick presets.
-- **PNG Export:** Save PNG previews for every character.
-- **SVG Font Export:** Generate vector font files.
+## Save and use fonts
 
----
+1. Enter a font family name.
+2. **Save project** writes JSON containing geometry, spacing and every character design. **Open project** restores it for further editing.
+3. **Export installable font (.ttf)** creates a TrueType font with Unicode mappings, outlines, metrics, names and checksums.
+4. On Windows, open the exported TTF and choose **Install**, then select the family name in your application. Restart the target application if its font list has not refreshed. Use distinct family names for variants.
 
-## Tech Stack
+TTFs use a 1000-unit em and an 800-unit design height. They are unhinted, with uniform character advances and no kerning. Slant is part of the exported Regular design. Exporting does not automatically install the font.
 
-- **Language:** Rust (2021 Edition)
-- **GUI Framework:** `eframe` / `egui` (v0.27.2)
-- **Native Dialogs:** `rfd`
-- **Image Processing:** `image`
+PNG previews are antialiased black glyphs on transparent backgrounds at a 512-pixel design height. Files are named by Unicode code point (for example `U+0041.png`) to avoid case collisions and invalid punctuation filenames on Windows. SVG export creates a vector specimen sheet, not an installable SVG font. All outputs share the same geometry, including rounding and slant.
 
----
+## Validation
 
-## Inspiration & Concept
+```sh
+cargo test
+cargo clippy --all-targets -- -D warnings
+```
 
-Inspired by [Niklas Tsalkos](https://www.instagram.com/niklastsalkos/)
+Tests cover project round trips and validation, gap-aware size presets, deterministic font generation, TrueType parsing, character mappings, bounding boxes and checksums. On Windows, a test loads generated fonts through GDI using process-private memory registration and removes them immediately; it does not install fonts.
+
+## Connected cells and new editing tools
+
+- **Connect neighboring cells** bridges horizontal and vertical active neighbors across gaps. Adjust **Connector thickness** to keep thin lines or broad strokes between rounded cells. These bridges are included in PNG, SVG, TTF and project saves. Turn the option off for separated cells.
+- **Grid lines** hides the outlines on the editing canvas; these guides are never exported.
+- **Style presets**: Pixel, Soft, Stencil and Linked change styling while preserving character drawings and dimensions.
+- **Mirror drawing** toggles the corresponding cell across the vertical center when you draw or erase.
+- **Move glyph** shifts a character left/right/up/down with wraparound, preserving all active cells.
+- **Capture comparison** stores a session-only snapshot and shows the selected glyph beside its current design. Restore the entire captured design or dismiss the comparison. Restoration supports undo; save a project to preserve a snapshot between sessions.
