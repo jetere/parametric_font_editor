@@ -11,7 +11,7 @@ A lightweight, GPU-accelerated desktop tool built in Rust for designing parametr
 ## 15-Box Matrix System
 Instead of drawing traditional freehand vector splines, fonts in this studio are constructed on a flexible **$3 \times 5$ parametric grid** (15 active coordinate boxes). Every character from $A\text{--}Z$ is mapped as a unique combination of these boxes.
 
-## Preview <img width="1145" height="711" alt="Screenshot 2026-08-06 053438" src="https://github.com/user-attachments/assets/9d6242d8-d54f-4704-8fc2-2a4747114f7f" />
+
 
 
 
